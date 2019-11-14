@@ -11,6 +11,10 @@ public class Buy2Pay1Discount implements DiscountStrategy {
 		this.saleableSKU = saleableSKU;
 	}
 	
+	/**
+	 * This discount offers buy 2 items and pay just one of them,
+	 * for a given SKU.
+	 */
 	@Override
 	public BigDecimal getDiscount(List<Item> items) {
 		long n = items.stream().filter(x -> x.getSKU().equals(saleableSKU.getSKU())).count();

@@ -13,25 +13,45 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class DiscountEngineTest {
 
-	@DisplayName("Calculating 2 double  discounts for different baskets...")
+	@DisplayName("Calculating 2 discounts for 2 different baskets...")
     @MethodSource
     @ParameterizedTest(name = "{0}")
-    void discountEngineProvidesWith2DoubleDiscounts(String description, String expectedDiscount, Iterable<Item> items) {
+    void discountEngineProvidesWith2Discounts(String description, String expectedDiscount, Iterable<Item> items) {
 		// Given
 		// a basket of items
         final Basket basket = new Basket();
         items.forEach(basket::add);
         
         // a discounts A and B
-        Buy2Pay1Discount discountA = new Buy2Pay1Discount(new PintOfMilk());
-        Buy3Pay2Discount discountB = new Buy3Pay2Discount(new PackOfDigestives());
-        DiscountEngine discountEngine = new DiscountEngine();
+        DiscountStrategy discountA = new Buy2Pay1Discount(new PintOfMilk());
+        DiscountStrategy discountB = new Buy3Pay2Discount(new PackOfDigestives());
+        BasketDiscounter discountEngine = new DiscountEngine();
         discountEngine.addDiscount(discountA);
         discountEngine.addDiscount(discountB);
         
         // Verify
         assertEquals(new BigDecimal(expectedDiscount), discountEngine.calculate(basket.items()));
     }
+
+    static Stream<Arguments> discountEngineProvidesWith2Discounts() {
+        return Stream.of(
+        		twoPintsOfMilkAnd3PacksOfDigestivesDiscounted(),
+        		twoPintsOfMilkAnd2PacksOfDigestivesDiscounted(),
+        		fourPintsOfMilkAnd6PacksOfDigestivesDiscounted(),
+        		twoPintsOfMilkAnd6PacksOfDigestivesDiscounted()
+        );
+    }
+
+    private static Arguments twoPintsOfMilkAnd3PacksOfDigestivesDiscounted() {
+        return Arguments.of("2 pints of milk and 3 packs of digestives", "2.04",
+                Arrays.asList(aPackOfDigestives(), aPackOfDigestives(), aPackOfDigestives(), aPintOfMilk(), aPintOfMilk()));
+    }
+    
+    private static Arguments twoPintsOfMilkAnd2PacksOfDigestivesDiscounted() {
+        return Arguments.of("2 pints of milk and 2 packs of digestives", "0.49",
+                Arrays.asList(aPackOfDigestives(), aPackOfDigestives(), aPintOfMilk(), aPintOfMilk()));
+    }
+    
 
     static Stream<Arguments> discountEngineProvidesWith2DoubleDiscounts() {
         return Stream.of(
@@ -54,44 +74,7 @@ public class DiscountEngineTest {
                 		, aPintOfMilk(), aPintOfMilk()));
     }
     
-	@DisplayName("Calculating 2 single discounts for different baskets...")
-    @MethodSource
-    @ParameterizedTest(name = "{0}")
-    void discountEngineProvidesWith2Discounts(String description, String expectedDiscount, Iterable<Item> items) {
-		// Given
-		// a basket of items
-        final Basket basket = new Basket();
-        items.forEach(basket::add);
-        
-        // a discounts A and B
-        Buy2Pay1Discount discountA = new Buy2Pay1Discount(new PintOfMilk());
-        Buy3Pay2Discount discountB = new Buy3Pay2Discount(new PackOfDigestives());
-        DiscountEngine discountEngine = new DiscountEngine();
-        discountEngine.addDiscount(discountA);
-        discountEngine.addDiscount(discountB);
-        
-        // Verify
-        assertEquals(new BigDecimal(expectedDiscount), discountEngine.calculate(basket.items()));
-    }
-
-    static Stream<Arguments> discountEngineProvidesWith2Discounts() {
-        return Stream.of(
-        		twoPintsOfMilkAnd3PacksOfDigestivesDiscounted(),
-        		twoPintsOfMilkAnd2PacksOfDigestivesDiscounted()
-        );
-    }
-
-    private static Arguments twoPintsOfMilkAnd3PacksOfDigestivesDiscounted() {
-        return Arguments.of("2 pints of milk and 3 packs of digestives", "2.04",
-                Arrays.asList(aPackOfDigestives(), aPackOfDigestives(), aPackOfDigestives(), aPintOfMilk(), aPintOfMilk()));
-    }
-    
-    private static Arguments twoPintsOfMilkAnd2PacksOfDigestivesDiscounted() {
-        return Arguments.of("2 pints of milk and 2 packs of digestives", "0.49",
-                Arrays.asList(aPackOfDigestives(), aPackOfDigestives(), aPintOfMilk(), aPintOfMilk()));
-    }
-    
-    @DisplayName("Calculating 0 discounts for different baskets...")
+    @DisplayName("Calculating 0 discounts for 2 different baskets...")
     @MethodSource
     @ParameterizedTest(name = "{0}")
     void discountEngineProvidesWith0Discount(String description, String expectedDiscount, Iterable<Item> items) {
@@ -101,7 +84,7 @@ public class DiscountEngineTest {
         items.forEach(basket::add);
         
         // no discounts
-        DiscountEngine discountEngine = new DiscountEngine();
+        BasketDiscounter discountEngine = new DiscountEngine();
         
         // Verify
         assertEquals(new BigDecimal(expectedDiscount), discountEngine.calculate(basket.items()));
